@@ -1,0 +1,54 @@
+# this script is supposed to measure the ratio between different words and total words in pdf files (variety rate)
+
+import re
+import PyPDF2
+import os
+
+from PyPDF2 import PdfFileReader
+
+# defining punctuation and numbers
+punctuations = '''!()-[]{};:'"\,<>./?@#$%^&*_~1234567890'''
+pwd = os.getcwd()
+# open each file
+for i in range(1,9):
+    file_name = pwd+'\lib'+str(i)+'.pdf'
+    f = open(file_name, 'rb')
+    read_pdf = PdfFileReader(f)
+    np = read_pdf.getNumPages()
+    words_list = []
+
+# browse pages
+    for page in range(np):
+        read_page = read_pdf.getPage(page)
+        page_content = read_page.extractText()
+        words_list_page = re.split(r'\s',page_content) #uses spaces to separate words and puts them in word_list_page
+
+# delete punctuations
+        for j in range(len(words_list_page)):
+            strj = words_list_page[j]
+            if any(p in strj for p in punctuations): #deletes punctuations only if present to make the loop leaner
+                no_punct = ''
+                for char in strj:
+                    if char not in punctuations:
+                        no_punct = no_punct + char
+                words_list_page[j] = no_punct # each element with punctuations is replaced by the one without punct.
+
+# create a word list
+        words_list.extend(words_list_page)
+    
+# create dictionary (no duplicates) then a list from the dictionary's keys
+    words_list_def = list(dict.fromkeys(words_list))
+    
+# set the variables
+    n_unique_w = len(words_list_def)
+    tot_w = len(words_list)
+    variety_rate = n_unique_w/tot_w
+# set the output on file
+    str1 = 'file number ' + str(i) + ' contains ' + str(n_unique_w) + ' unique words on a total of ' + str(tot_w) + ' words\n'
+    str2 = 'variety rate: ' + str(variety_rate) + '\n\n'
+    other_file = pwd+"\output.txt"
+    with open(other_file, "a") as o:
+        o.write(str1)
+        o.write(str2)
+    o.close()
+    f.close()
